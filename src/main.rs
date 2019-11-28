@@ -417,7 +417,7 @@ fn main() {
         gl_window.make_current().unwrap();
     }
 
-    let options = Options { pbo: false, client_storage: true, texture_array: false, texture_storage: false, swizzle: false };
+    let options = Options { pbo: false, client_storage: false, texture_array: false, texture_storage: false, swizzle: false };
 
     let texture_rectangle = true;
     let apple_format = true; // on Intel it looks like we don't need this particular format
