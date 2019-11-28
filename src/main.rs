@@ -2,7 +2,6 @@ extern crate gleam;
 extern crate glutin;
 extern crate libc;
 extern crate euclid;
-extern crate core_foundation;
 
 use euclid::{Transform3D, Vector3D};
 
@@ -14,7 +13,6 @@ use std::rc::Rc;
 
 use gleam::gl::GLuint;
 use gleam::gl::ErrorCheckingGl;
-use core_foundation::dictionary::CFMutableDictionary;
 
 
 
@@ -399,20 +397,9 @@ fn load_shader(gl: &Rc<Gl>, shader_type: gl::GLenum, source: &[u8]) -> gl::GLuin
     return shader;
 }
 
-fn allow_gpu_switching() {
-    use core_foundation::string::CFString;
-    use core_foundation::base::TCFType;
-    use core_foundation::boolean::CFBoolean;
-
-    let i = core_foundation::bundle::CFBundle::main_bundle().info_dictionary();
-    let mut i = unsafe { i.to_mutable() };
-    i.set(CFString::new("NSSupportsAutomaticGraphicsSwitching"), CFBoolean::true_value().into_CFType());
-}
 
 fn main() {
-
-    allow_gpu_switching();
-
+    
     let mut events_loop = glutin::EventsLoop::new();
     let window = glutin::WindowBuilder::new()
         .with_title("Hello, world!")
@@ -468,23 +455,16 @@ fn main() {
         v_texture_coord = a_texture_coord;
     }";
 
-    let (sampler, coord) = if texture_rectangle {
-        ("sampler2DRect", "v_texture_coord")
-    } else if options.texture_array {
-        ("sampler2DArray", "vec3(v_texture_coord, 0.0)")
-    } else {
-        ("sampler2D", "v_texture_coord")
-    };
     let fs_source = format!("
     #version 140
 
     in vec2 v_texture_coord;
-    uniform {} u_sampler;
     out vec4 fragment_color;
+    uniform float tint;
     void main(void) {{
-        fragment_color = texture(u_sampler, {});
+        fragment_color = vec4(0.5)*tint;
     }}
-    ", sampler, coord).into_bytes();
+    ").into_bytes();
 
 
     let mut glc = unsafe { gl::GlFns::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _) };
@@ -678,18 +658,6 @@ fn main() {
         }
         //paint_square(&mut image);
         gl_window.swap_buffers().unwrap();
-        /*
-        let mut count = 0;
-        gl.finish_object_apple(gl::TEXTURE, texture.id);
-        while gl.test_object_apple(gl::TEXTURE, texture.id) == 0 {
-            count += 1
-        }
-                println!("test {}", count);
-
-        */
-        //paint_square2(&mut image);
-
-
 
 
         cube_rotation += 0.1;
