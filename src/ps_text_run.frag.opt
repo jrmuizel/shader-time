@@ -1,0 +1,45 @@
+#version 150
+precision highp float;
+out vec4 oFragColor;
+uniform sampler2DArray sColor0;
+uniform sampler2DArray sPrevPassAlpha;
+flat in vec4 vClipMaskUvBounds;
+in vec4 vClipMaskUv;
+flat in vec4 vColor;
+in vec3 vUv;
+flat in vec4 vUvBorder;
+flat in vec2 vMaskSwizzle;
+void main ()
+{
+  vec4 mask_1;
+  vec3 tmpvar_2;
+  tmpvar_2.xy = clamp (vUv.xy, vUvBorder.xy, vUvBorder.zw);
+  tmpvar_2.z = vUv.z;
+  vec4 tmpvar_3;
+  tmpvar_3 = texture (sColor0, tmpvar_2);
+  mask_1.w = tmpvar_3.w;
+  mask_1.xyz = ((tmpvar_3.xyz * vMaskSwizzle.x) + (tmpvar_3.www * vMaskSwizzle.y));
+  float tmpvar_4;
+  if ((vClipMaskUvBounds.xy == vClipMaskUvBounds.zw)) {
+    tmpvar_4 = 1.0;
+  } else {
+    vec2 tmpvar_5;
+    tmpvar_5 = (vClipMaskUv.xy * gl_FragCoord.w);
+    bvec2 tmpvar_6;
+    tmpvar_6 = lessThanEqual (vClipMaskUvBounds.xy, tmpvar_5);
+    bvec2 tmpvar_7;
+    tmpvar_7 = greaterThan (vClipMaskUvBounds.zw, tmpvar_5);
+    bool tmpvar_8;
+    tmpvar_8 = ((tmpvar_6.x && tmpvar_6.y) && (tmpvar_7.x && tmpvar_7.y));
+    if (!(tmpvar_8)) {
+      tmpvar_4 = 0.0;
+    } else {
+      ivec3 tmpvar_9;
+      tmpvar_9.xy = ivec2(tmpvar_5);
+      tmpvar_9.z = int((vClipMaskUv.z + 0.5));
+      tmpvar_4 = texelFetch (sPrevPassAlpha, tmpvar_9, 0).x;
+    };
+  };
+  oFragColor = ((vColor * mask_1) * tmpvar_4);
+}
+
